@@ -19,8 +19,8 @@ type RepositoryI interface {
 	GetBookingByID(ctx context.Context, id uuid.UUID) (*models.Booking, error)
 	GetBookingsByEventID(ctx context.Context, eventID uuid.UUID) ([]*models.Booking, error)
 	GetExpiredReservedBookings(ctx context.Context) ([]*models.Booking, error)
-	CancelExpiredBookingWithTransaction(ctx context.Context, bookingID uuid.UUID) error
 
+	CancelExpiredBookingWithTransaction(ctx context.Context, bookingID uuid.UUID) error
 	ConfirmBookingWithTransaction(ctx context.Context, bookingID uuid.UUID) error
 	BookEventWithTransaction(ctx context.Context, eventID, userID uuid.UUID) (*models.Booking, error)
 }

@@ -112,9 +112,11 @@ const (
 	countUserBookingsQuery = `
 	SELECT 1
 	FROM bookings
-	WHERE event_id = $1 AND user_id = $2 AND status IN ('reserved', 'confirmed')
+	WHERE event_id = $1 
+	  AND user_id = $2 
+	  AND status IN ('reserved', 'confirmed')
 	LIMIT 1
-	`
+`
 
 	decreaseBookingSeatsQuery = `
 	UPDATE events

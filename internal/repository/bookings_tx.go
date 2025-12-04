@@ -13,22 +13,21 @@ import (
 )
 
 func (r *Repository) BookEventWithTransaction(ctx context.Context, eventID, userID uuid.UUID) (*models.Booking, error) {
-	tx, err := r.conn.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := r.conn.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("BeginTx-BookEventWithTransaction:: %w", err)
 	}
 
 	defer func() {
-		if err != nil {
-			if rbErr := tx.Rollback(ctx); rbErr != nil {
-				slog.Errorf("Rollback-BookEventWithTransaction: %v", rbErr)
-			}
+		rbErr := tx.Rollback(context.Background())
+		if rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+			slog.Errorf("Rollback-BookEventWithTransaction: %v", rbErr)
 		}
 	}()
 
 	event, err := r.getEventForUpdate(ctx, tx, eventID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getEventForUpdate-BookEventWithTransaction: %w", err)
 	}
 
 	if event.Date.Before(time.Now()) {
@@ -41,7 +40,7 @@ func (r *Repository) BookEventWithTransaction(ctx context.Context, eventID, user
 
 	exists, err := r.countUserBookings(ctx, tx, eventID, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("countUserBookings-BookEventWithTransaction: %w", err)
 	}
 	if exists > 0 {
 		return nil, apperrors.UserAlreadyBookedThisEvent
@@ -75,7 +74,7 @@ func (r *Repository) BookEventWithTransaction(ctx context.Context, eventID, user
 		return nil, fmt.Errorf("insertBooking-BookEventWithTransaction: %w", err)
 	}
 
-	if err = tx.Commit(ctx); err != nil {
+	if err = tx.Commit(context.Background()); err != nil {
 		return nil, fmt.Errorf("Commit-BookEventWithTransaction:: %w", err)
 	}
 
@@ -83,18 +82,21 @@ func (r *Repository) BookEventWithTransaction(ctx context.Context, eventID, user
 }
 
 func (r *Repository) ConfirmBookingWithTransaction(ctx context.Context, bookingID uuid.UUID) error {
-	tx, err := r.conn.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := r.conn.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("BeginTx-ConfirmBookingWithTransaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback(ctx)
+		rbErr := tx.Rollback(context.Background())
+		if rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+			slog.Errorf("Rollback-ConfirmBookingWithTransaction: %v", rbErr)
+		}
 	}()
 
 	booking, err := r.getBookingInTx(ctx, tx, bookingID)
 	if err != nil {
-		return err
+		return fmt.Errorf("getBookingInTx-ConfirmBookingWithTransaction: %w", err)
 	}
 
 	if booking.Status != models.BookingStatusReserved {
@@ -106,14 +108,14 @@ func (r *Repository) ConfirmBookingWithTransaction(ctx context.Context, bookingI
 	}
 
 	if err = r.updateBookingStatus(ctx, tx, string(models.BookingStatusConfirmed), bookingID); err != nil {
-		return err
+		return fmt.Errorf("updateBookingStatus-ConfirmBookingWithTransaction: %w", err)
 	}
 
 	if err = r.updateEventSeatsReservedToBooked(ctx, tx, booking.EventID); err != nil {
-		return err
+		return fmt.Errorf("updateEventSeatsReservedToBooked-ConfirmBookingWithTransaction: %w", err)
 	}
 
-	if err = tx.Commit(ctx); err != nil {
+	if err = tx.Commit(context.Background()); err != nil {
 		return fmt.Errorf("Commit-ConfirmBookingWithTransaction: %w", err)
 	}
 
@@ -121,18 +123,21 @@ func (r *Repository) ConfirmBookingWithTransaction(ctx context.Context, bookingI
 }
 
 func (r *Repository) CancelExpiredBookingWithTransaction(ctx context.Context, bookingID uuid.UUID) error {
-	tx, err := r.conn.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := r.conn.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("BeginTx-CancelExpiredBookingWithTransaction: %w", err)
 	}
 
 	defer func() {
-		_ = tx.Rollback(ctx)
+		rbErr := tx.Rollback(context.Background())
+		if rbErr != nil && !errors.Is(rbErr, pgx.ErrTxClosed) {
+			slog.Errorf("Rollback-CancelExpiredBookingWithTransaction: %v", rbErr)
+		}
 	}()
 
 	booking, err := r.getBookingInTx(ctx, tx, bookingID)
 	if err != nil {
-		return err
+		return fmt.Errorf("getBookingInTx-CancelExpiredBookingWithTransaction: %w", err)
 	}
 
 	if booking.Status != models.BookingStatusReserved {
@@ -140,14 +145,15 @@ func (r *Repository) CancelExpiredBookingWithTransaction(ctx context.Context, bo
 	}
 
 	if err = r.updateBookingStatus(ctx, tx, string(models.BookingStatusCancelled), bookingID); err != nil {
-		return err
+		return fmt.Errorf("updateBookingStatus-CancelExpiredBookingWithTransaction: %w", err)
+
 	}
 
 	if err = r.decreaseBookingSeats(ctx, tx, booking.EventID); err != nil {
 		return err
 	}
 
-	if err = tx.Commit(ctx); err != nil {
+	if err = tx.Commit(context.Background()); err != nil {
 		return fmt.Errorf("Commit-CancelExpiredBookingWithTransaction: %w", err)
 	}
 

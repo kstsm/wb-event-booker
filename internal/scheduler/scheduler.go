@@ -32,7 +32,6 @@ func (s *Scheduler) Start(ctx context.Context, cfg config.Config, task func() er
 		if err := task(); err != nil {
 			slog.Error("Scheduler task error", "error", err)
 		}
-
 		for {
 			select {
 			case <-ctx.Done():

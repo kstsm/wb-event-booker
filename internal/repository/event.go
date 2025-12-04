@@ -26,30 +26,6 @@ func (r *Repository) CreateEvent(ctx context.Context, event *models.Event) error
 	return nil
 }
 
-func (r *Repository) getEvent(ctx context.Context, eventID uuid.UUID) (*models.Event, error) {
-	var event models.Event
-	err := r.conn.QueryRow(ctx, selectEventForUpdateQuery, eventID).Scan(
-		&event.ID,
-		&event.Name,
-		&event.Date,
-		&event.TotalSeats,
-		&event.ReservedSeats,
-		&event.BookedSeats,
-		&event.BookingLifetime,
-		&event.PaymentReq,
-		&event.CreatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.EventNotFound
-		}
-
-		return nil, fmt.Errorf("QueryRow-getEvent: %w", err)
-	}
-
-	return &event, nil
-}
-
 func (r *Repository) GetEventByID(ctx context.Context, id uuid.UUID) (*models.Event, error) {
 	var event models.Event
 
@@ -105,22 +81,4 @@ func (r *Repository) ListEvents(ctx context.Context) ([]*models.Event, error) {
 	}
 
 	return events, nil
-}
-
-func (r *Repository) incBooked(ctx context.Context, tx pgx.Tx, eventID uuid.UUID) error {
-	_, err := tx.Exec(ctx, updateBookedSeatsQuery, eventID)
-	if err != nil {
-		return fmt.Errorf("Exec-incBooked: %w", err)
-	}
-
-	return nil
-}
-
-func (r *Repository) incReserved(ctx context.Context, tx pgx.Tx, eventID uuid.UUID) error {
-	_, err := tx.Exec(ctx, updateReservedSeatsQuery, eventID)
-	if err != nil {
-		return fmt.Errorf("Exec-incReserved: %w", err)
-	}
-
-	return nil
 }

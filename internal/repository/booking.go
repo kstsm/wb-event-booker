@@ -6,30 +6,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/kstsm/wb-event-booker/internal/apperrors"
 	"github.com/kstsm/wb-event-booker/internal/models"
 )
-
-func (r *Repository) getBooking(ctx context.Context, bookingID uuid.UUID) (*models.Booking, error) {
-	var booking models.Booking
-	err := r.conn.QueryRow(ctx, selectBookingForUpdateQuery, bookingID).Scan(
-		&booking.ID,
-		&booking.EventID,
-		&booking.UserID,
-		&booking.Status,
-		&booking.Deadline,
-		&booking.CreatedAt,
-		&booking.UpdatedAt,
-	)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, apperrors.BookingNotFound
-		}
-		return nil, fmt.Errorf("QueryRow-getBooking: %w", err)
-	}
-
-	return &booking, nil
-}
 
 func (r *Repository) GetBookingsByEventID(ctx context.Context, eventID uuid.UUID) ([]*models.Booking, error) {
 	rows, err := r.conn.Query(ctx, getBookingsByEventQuery, eventID)
