@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventBooker - Мероприятие</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 15px;
+            background-color: #f5f5f5;
+            font-size: 15px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 24px;
+        }
+        .nav {
+            margin-bottom: 12px;
+        }
+        .nav a {
+            margin-right: 12px;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 15px;
+        }
+        .content-wrapper {
+            flex: 1;
+        }
+        .event-details {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        .event-details h2 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 20px;
+        }
+        .event-details h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 17px;
+        }
+        .event-details p {
+            margin: 8px 0;
+            color: #666;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .event-details .seats {
+            font-size: 17px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin-right: 10px;
+            margin-top: 10px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .form-group {
+            margin: 12px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        .error {
+            color: #dc3545;
+            padding: 8px;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .success {
+            color: #155724;
+            padding: 12px;
+            background: #d4edda;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .booking-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+        .booking-info p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .info-text {
+            background: #fff3cd;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .expired-badge {
+            display: inline-block;
+            padding: 6px 6px;
+            background: #dc3545;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .expired-message {
+            background: #f8d7da;
+            color: #dc3545;
+            padding: 3px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EventBooker - Мероприятие</h1>
+        <div class="nav">
+            <a href="/">Назад к списку</a>
+            <a href="/register">Регистрация</a>
+            <a href="/admin">Админ панель</a>
+        </div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+        <div class="content-wrapper">
+            <div id="event-details" class="event-details"></div>
+            <div id="booking-section" style="display: none;">
+                <div class="event-details">
+                    <h2>Бронирование</h2>
+                    <div class="info-text">
+                        Для бронирования необходимо быть зарегистрированным пользователем. 
+                    </div>
+                    <div class="form-group">
+                        <label for="user-email">Email зарегистрированного пользователя:</label>
+                        <input type="email" id="user-email">
+                    </div>
+                    <button class="btn" onclick="bookEvent()">Забронировать</button>
+                </div>
+                <div id="booking-info" class="booking-info" style="display: none;">
+                    <h3>Бронь создана!</h3>
+                    <p><strong>Booking ID:</strong> <span id="booking-id"></span></p>
+                    <p id="booking-deadline-p" style="display: none;"><strong>Дедлайн оплаты:</strong> <span id="booking-deadline"></span></p>
+                </div>
+            </div>
+            <div id="confirm-section" class="event-details" style="display: none;">
+                <h2>Подтверждение бронирования</h2>
+                <div class="info-text">
+                    Если у Вас уже есть бронирование, введите Booking ID для подтверждения оплаты.
+                </div>
+                <div class="form-group">
+                    <label for="confirm-booking-id">Booking ID:</label>
+                    <input type="text" id="confirm-booking-id">
+                </div>
+                <button class="btn btn-success" onclick="confirmExistingBooking()">Подтвердить оплату</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+        let currentBookingId = null;
+
+        if (!eventId) {
+            showError('ID мероприятия не указан');
+        } else {
+            loadEvent();
+        }
+
+        async function loadEvent() {
+            try {
+                const response = await fetch(`/api/events/${eventId}`);
+                const respText = await response.text();
+                let json = null;
+                try { json = respText ? JSON.parse(respText) : null; } catch {}
+                
+                if (!response.ok) {
+                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    showError(errorMsg);
+                    return;
+                }
+                
+                const data = json || {};
+                currentEvent = data.event;
+                displayEvent(data.event);
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        setInterval(loadEvent, 5000);
+
+        function formatBookingLifetime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            
+            if (hours === 0) {
+                return `${mins} минут`;
+            } else if (mins === 0) {
+                return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'}`;
+            } else {
+                return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'} ${mins} ${mins === 1 ? 'минута' : mins < 5 ? 'минуты' : 'минут'}`;
+            }
+        }
+
+        function displayEvent(event) {
+            const availableSeats = event.total_seats - event.reserved_seats - event.booked_seats;
+            const date = new Date(event.date).toLocaleString('ru-RU');
+            const requiresPayment = event.requires_payment_confirmation;
+            const eventDate = new Date(event.date);
+            const now = new Date();
+            const isExpired = eventDate < now;
+            
+            let lifetimeText = '';
+            let typeText = '';
+            if (requiresPayment) {
+                typeText = `<p><strong>Тип:</strong> Требует подтверждение бронирование</p>`;
+                lifetimeText = `<p><strong>Срок жизни брони:</strong> ${formatBookingLifetime(event.booking_lifetime)}</p>`;
+            } else {
+                typeText = `<p><strong>Тип:</strong> Бесплатное мероприятие (без подтверждения оплаты)</p>`;
+            }
+            
+            const expiredBadge = isExpired ? '' : '';
+            const expiredMessage = isExpired ? '<div class="expired-message"><strong>Это мероприятие уже прошло. Бронирование и подтверждение брони недоступны.</strong></div>' : '';
+
+            let seatsInfo = '';
+            if (requiresPayment) {
+                seatsInfo = `
+                    <p><strong>Забронировано:</strong> ${event.reserved_seats}</p>
+                    <p><strong>Подтверждено:</strong> ${event.booked_seats}</p>
+                `;
+            }
+            
+            document.getElementById('event-details').innerHTML = `
+                ${expiredBadge}
+                <h2>${event.name}</h2>
+                <p><strong>Дата:</strong> ${date}</p>
+                <p><strong>Всего мест:</strong> ${event.total_seats}</p>
+                ${seatsInfo}
+                ${typeText}
+                ${lifetimeText}
+                <p class="seats"><strong>Свободно:</strong> ${availableSeats}</p>
+                ${expiredMessage}
+
+            `;
+
+            document.getElementById('booking-section').style.display = 'block';
+
+            if (requiresPayment) {
+                document.getElementById('confirm-section').style.display = 'block';
+            } else {
+                document.getElementById('confirm-section').style.display = 'none';
+            }
+        }
+
+        let currentEvent = null;
+
+        async function bookEvent() {
+            const email = document.getElementById('user-email').value.trim();
+
+            try {
+                const response = await fetch(`/api/events/${eventId}/book`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email }),
+                });
+
+                const respText = await response.text();
+                let json = null;
+                try { json = respText ? JSON.parse(respText) : null; } catch {}
+                
+                if (!response.ok) {
+                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    showError(errorMsg);
+                    return;
+                }
+
+                const data = json || {};
+                currentBookingId = data.booking_id;
+                document.getElementById('booking-id').textContent = data.booking_id;
+                if (data.deadline) {
+                    document.getElementById('booking-deadline').textContent = new Date(data.deadline).toLocaleString('ru-RU');
+                    document.getElementById('booking-deadline-p').style.display = 'block';
+                } else {
+                    document.getElementById('booking-deadline-p').style.display = 'none';
+                }
+                document.getElementById('booking-info').style.display = 'block';
+                const successMsg = (data && data.message) ? data.message : 'Бронь успешно создана!';
+                showSuccess(successMsg);
+                loadEvent();
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        async function confirmExistingBooking() {
+            const bookingId = document.getElementById('confirm-booking-id').value.trim();
+
+            try {
+                const response = await fetch(`/api/events/${eventId}/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        booking_id: bookingId
+                    }),
+                });
+
+                const respText = await response.text();
+                let json = null;
+                try { json = respText ? JSON.parse(respText) : null; } catch {}
+                
+                if (!response.ok) {
+                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    showError(errorMsg);
+                    return;
+                }
+
+                const successMsg = (json && json.message) ? json.message : 'Бронь успешно подтверждена!';
+                showSuccess(successMsg);
+                document.getElementById('confirm-booking-id').value = '';
+                loadEvent();
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

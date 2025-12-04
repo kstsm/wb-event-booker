@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EventBooker - Админ панель</title>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;padding:20px}
+        .container{max-width:1100px;margin:0 auto}
+        h1{margin-bottom:16px;color:#222}
+        .nav{margin-bottom:16px}
+        .nav a{margin-right:12px;color:#007bff;text-decoration:none}
+        .section{background:#fff;padding:20px;border-radius:8px;margin-bottom:16px;border:1px solid #e6e6e6}
+        .form-group{margin:12px 0}
+        label{display:block;margin-bottom:6px;font-weight:600}
+        input,select,button{padding:8px;border-radius:6px;border:1px solid #dcdcdc;font-size:14px;width:100%}
+        .row{display:flex;gap:12px}
+        .col{flex:1}
+        button.btn{background:#007bff;color:#fff;border:none;cursor:pointer;padding:10px 14px;width:auto}
+        .error{color:#dc3545;padding:10px;background:#f8d7da;border-radius:4px;margin-bottom:20px;display:none}
+        .success{color:#155724;padding:10px;background:#d4edda;border-radius:4px;margin-bottom:20px;display:none}
+        .booking-item{padding:10px;border:1px solid #eee;border-radius:6px;margin-bottom:10px;background:#fafafa}
+        input[type="checkbox"]{width:20px;height:20px;margin-right:10px;cursor:pointer;accent-color:#007bff}
+        .checkbox-label{font-size:18px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+        .expired-event{opacity:0.6;color:#6c757d}
+        .expired-badge{display:inline-block;padding:2px 6px;background: #dc3545;color:#dc3545;border-radius:3px;font-size:11px;font-weight:bold;margin-left:8px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>EventBooker - Админ панель</h1>
+    <div class="nav">
+        <a href="/">Главная</a>
+        <a href="/register">Регистрация</a>
+        <a href="/admin">Админ панель</a>
+    </div>
+    <div id="error" class="error"></div>
+    <div id="success" class="success"></div>
+    <div class="section">
+        <h2>Создать мероприятие</h2>
+        <form id="create-event-form">
+            <div class="form-group">
+                <label for="event-name">Название</label>
+                <input id="event-name" type="text"  />
+            </div>
+            <div class="form-group">
+                <label for="event-date">Дата и время (локально)</label>
+                <input id="event-date" type="datetime-local"/>
+            </div>
+            <div class="form-group">
+                <label for="event-seats">Количество мест</label>
+                <input id="event-seats" type="number" value="10"/>
+
+            <div class="row">
+                <div class="col form-group">
+                    <label for="event-lifetime-hours">Срок жизни брони (часы)</label>
+                    <input id="event-lifetime-hours" type="number"/>
+                </div>
+                <div class="col form-group">
+                    <label for="event-lifetime-minutes">Срок жизни брони (минуты)</label>
+                    <input id="event-lifetime-minutes" type="number"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="event-requires-payment" checked />
+                    Требует подтверждения оплаты
+                </label>
+            </div>
+            <div style="margin-top:12px">
+                <button id="create-event-btn" type="submit" class="btn">Создать мероприятие</button>
+            </div>
+        </form>
+    </div>
+    <div class="section">
+        <h2>Просмотр броней</h2>
+        <div class="form-group">
+            <label for="event-select">Выберите мероприятие</label>
+            <select id="event-select"><option value="">-- нет --</option></select>
+        </div>
+        <div id="bookings-list"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('create-event-form').addEventListener('submit', createEvent);
+
+    function showError(msg) {
+        const el = document.getElementById('error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('success').style.display = 'none';
+    }
+    function showSuccess(msg) {
+        const el = document.getElementById('success');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('error').style.display = 'none';
+    }
+
+    function isValidLocalDateString(s) {
+        return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s);
+    }
+
+    function toRFC3339(dateInput) {
+        const date = new Date(dateInput);
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+        return date.toISOString();
+    }
+
+    async function createEvent(e) {
+        e.preventDefault();
+        showError('');
+        showSuccess('');
+        const btn = document.getElementById('create-event-btn');
+        try {
+            const name = document.getElementById('event-name').value.trim();
+            const dateInput = document.getElementById('event-date').value;
+            const seats = parseInt(document.getElementById('event-seats').value, 10);
+            const lifetimeHours = parseInt(document.getElementById('event-lifetime-hours').value, 10) || 0;
+            const lifetimeMinutes = parseInt(document.getElementById('event-lifetime-minutes').value, 10) || 0;
+            const requiresPayment = document.getElementById('event-requires-payment').checked;
+
+            const isoDate = dateInput ? toRFC3339(dateInput) : null;
+
+            const body = { 
+                name, 
+                date: isoDate || '',
+                total_seats: seats,
+                booking_lifetime_hours: lifetimeHours,
+                booking_lifetime_minutes: lifetimeMinutes,
+                requires_payment_confirmation: requiresPayment
+            };
+
+            btn.disabled = true;
+            btn.textContent = 'Создание...';
+
+            const resp = await fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const respText = await resp.text();
+            let json = null;
+            try { json = respText ? JSON.parse(respText) : null; } catch {}
+
+            if (!resp.ok) {
+                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                showError(errorMsg);
+                return;
+            }
+
+            const successMsg = (json && json.message) ? json.message : 'Мероприятие успешно создано';
+            showSuccess(successMsg);
+            document.getElementById('create-event-form').reset();
+            await loadEvents();
+
+        } catch (err) {
+            showError('Error: ' + (err.message || err));
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Создать мероприятие';
+        }
+    }
+
+    async function loadEvents() {
+        try {
+            const resp = await fetch('/api/events');
+            const respText = await resp.text();
+            let json = null;
+            try { json = respText ? JSON.parse(respText) : null; } catch {}
+            
+            if (!resp.ok) {
+                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                showError(errorMsg);
+                return;
+            }
+            
+            const data = json || {};
+            const sel = document.getElementById('event-select');
+            sel.innerHTML = '<option value="">-- Выберите --</option>';
+            const now = new Date();
+            (data.events || []).forEach(ev => {
+                const opt = document.createElement('option');
+                const eventDate = new Date(ev.date);
+                const isExpired = eventDate < now;
+                const expiredText = isExpired ? ' [ПРОСРОЧЕНО]' : '';
+                opt.value = ev.id;
+                opt.textContent = ev.name + ' (' + new Date(ev.date).toLocaleString('ru-RU') + ')' + expiredText;
+                if (isExpired) {
+                    opt.classList.add('expired-event');
+                }
+                sel.appendChild(opt);
+            });
+        } catch (err) {
+            showError('Error: Ошибка загрузки мероприятий: ' + err.message);
+        }
+    }
+
+    async function loadBookings() {
+        const id = document.getElementById('event-select').value;
+        const container = document.getElementById('bookings-list');
+        container.innerHTML = '';
+        if (!id) return;
+        try {
+            const resp = await fetch('/api/events/' + encodeURIComponent(id) + '/bookings');
+            const respText = await resp.text();
+            let json = null;
+            try { json = respText ? JSON.parse(respText) : null; } catch {}
+            
+            if (!resp.ok) {
+                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                showError(errorMsg);
+                return;
+            }
+            
+            const data = json || {};
+            if (!data.bookings || !data.bookings.length) {
+                container.innerHTML = '<p>Нет броней</p>';
+                return;
+            }
+            const statusText = {
+                'reserved': 'Забронировано',
+                'confirmed': 'Подтверждено',
+                'cancelled': 'Отменено'
+            };
+            container.innerHTML = data.bookings.map(b => {
+                const status = statusText[b.status] || b.status;
+                return '<div class="booking-item ' + b.status + '">' +
+                    '<p><strong>Booking ID:</strong> ' + b.id + '</p>' +
+                    '<p><strong>Пользователь:</strong> ' + getUserName(b.user_id) + '</p>' +
+                    '<p><strong>Статус:</strong> ' + status + '</p>' +
+                    '<p><strong>Дедлайн:</strong> ' + new Date(b.deadline).toLocaleString('ru-RU') + '</p>' +
+                    '<p><strong>Создано:</strong> ' + new Date(b.created_at).toLocaleString('ru-RU') + '</p>' +
+                    '</div>';
+            }).join('');
+        } catch (err) {
+            showError('Error: Ошибка загрузки броней: ' + err.message);
+        }
+    }
+
+    document.getElementById('event-select').addEventListener('change', loadBookings);
+
+    let usersCache = {};
+
+    async function loadUsersForBookings() {
+        try {
+            const resp = await fetch('/api/users');
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.users) {
+                    data.users.forEach(user => {
+                        usersCache[user.id] = user;
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Ошибка загрузки пользователей:', err);
+        }
+    }
+
+    function getUserName(userId) {
+        const user = usersCache[userId];
+        return user ? `${user.name} (${user.email})` : userId;
+    }
+
+    setInterval(() => {
+        const v = document.getElementById('event-select').value;
+        if (v) loadBookings();
+    }, 5000);
+
+    loadUsersForBookings();
+    loadEvents();
+</script>
+</body>
+</html>
