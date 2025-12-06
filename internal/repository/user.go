@@ -31,7 +31,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
 				}
 			}
 		}
-		return fmt.Errorf("Exec-CreateUser: %w", err)
+		return fmt.Errorf("Exec-createUser: %w", err)
 	}
 
 	return nil

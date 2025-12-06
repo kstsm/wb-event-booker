@@ -53,7 +53,7 @@ func (r *Repository) GetEventByID(ctx context.Context, id uuid.UUID) (*models.Ev
 func (r *Repository) ListEvents(ctx context.Context) ([]*models.Event, error) {
 	rows, err := r.conn.Query(ctx, listEventsQuery)
 	if err != nil {
-		return nil, fmt.Errorf("Query-ListEvents: %w", err)
+		return nil, fmt.Errorf("Query-listEvents: %w", err)
 	}
 	defer rows.Close()
 
@@ -71,13 +71,13 @@ func (r *Repository) ListEvents(ctx context.Context) ([]*models.Event, error) {
 			&event.PaymentReq,
 			&event.CreatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("Scan-ListEvents: %w", err)
+			return nil, fmt.Errorf("Scan-listEvents: %w", err)
 		}
 		events = append(events, event)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Rows-ListEvents: %w", err)
+		return nil, fmt.Errorf("Rows-listEvents: %w", err)
 	}
 
 	return events, nil

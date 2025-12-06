@@ -56,7 +56,7 @@ func (h *Handler) getEventByIDHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) ListEvents(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) listEventsHandler(w http.ResponseWriter, r *http.Request) {
 	events, err := h.service.ListEvents(r.Context())
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())

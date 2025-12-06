@@ -149,7 +149,7 @@
             try { json = respText ? JSON.parse(respText) : null; } catch {}
 
             if (!resp.ok) {
-                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + resp.status);
                 showError(errorMsg);
                 return;
             }
@@ -160,7 +160,7 @@
             await loadEvents();
 
         } catch (err) {
-            showError('Error: ' + (err.message || err));
+            showError(err.message || err);
         } finally {
             btn.disabled = false;
             btn.textContent = 'Создать мероприятие';
@@ -175,7 +175,7 @@
             try { json = respText ? JSON.parse(respText) : null; } catch {}
             
             if (!resp.ok) {
-                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + resp.status);
                 showError(errorMsg);
                 return;
             }
@@ -213,7 +213,7 @@
             try { json = respText ? JSON.parse(respText) : null; } catch {}
             
             if (!resp.ok) {
-                const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + resp.status);
+                const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + resp.status);
                 showError(errorMsg);
                 return;
             }

@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Service) CreateEvent(ctx context.Context, req *dto.CreateEventRequest) (*models.Event, error) {
-	data, err := time.Parse(time.RFC3339, req.Date)
+	date, err := time.Parse(time.RFC3339, req.Date)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date: %w", err)
 	}
@@ -20,7 +20,7 @@ func (s *Service) CreateEvent(ctx context.Context, req *dto.CreateEventRequest) 
 	event := &models.Event{
 		ID:              uuid.New(),
 		Name:            req.Name,
-		Date:            data.UTC(),
+		Date:            date.UTC(),
 		TotalSeats:      req.TotalSeats,
 		ReservedSeats:   0,
 		BookedSeats:     0,

@@ -31,12 +31,12 @@ func (h *Handler) NewRouter() http.Handler {
 	r.Route("/api", func(r chi.Router) {
 		r.Post("/events", h.createEventHandler)
 		r.Post("/events/{id}/book", h.bookEventHandler)
-		r.Post("/events/{id}/confirm", h.ConfirmBooking)
+		r.Post("/events/{id}/confirm", h.ConfirmBookingHandler)
 		r.Get("/events/{id}", h.getEventByIDHandler)
 
-		r.Get("/events", h.ListEvents)
-		r.Get("/events/{id}/bookings", h.ListBookingsByEvent)
-		r.Post("/users", h.CreateUser)
+		r.Get("/events", h.listEventsHandler)
+		r.Get("/events/{id}/bookings", h.listBookingsByEventHandler)
+		r.Post("/users", h.createUserHandler)
 	})
 
 	return r

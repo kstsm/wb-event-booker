@@ -21,19 +21,19 @@ var (
 
 func (r *CreateUserRequest) ValidateUser() error {
 	if r.Name == "" {
-		return fmt.Errorf("user name is required")
+		return errors.New("user name is required")
 	}
 
 	if !nameRegex.MatchString(r.Name) {
-		return fmt.Errorf("name must contain only letters")
+		return errors.New("name must contain only letters")
 	}
 
 	if r.Email == "" {
-		return fmt.Errorf("user email is required")
+		return errors.New("user email is required")
 	}
 
 	if !emailRegex.MatchString(r.Email) {
-		return fmt.Errorf("invalid email format")
+		return errors.New("invalid email format")
 	}
 
 	if r.TelegramID == nil {

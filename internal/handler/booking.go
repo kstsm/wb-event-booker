@@ -53,7 +53,7 @@ func (h *Handler) bookEventHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) ConfirmBooking(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ConfirmBookingHandler(w http.ResponseWriter, r *http.Request) {
 	eventID, err := parseUUIDParam(r, "id")
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
@@ -91,7 +91,7 @@ func (h *Handler) ConfirmBooking(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) ListBookingsByEvent(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) listBookingsByEventHandler(w http.ResponseWriter, r *http.Request) {
 	eventID, err := parseUUIDParam(r, "id")
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())

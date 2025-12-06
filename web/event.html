@@ -230,7 +230,7 @@
                 try { json = respText ? JSON.parse(respText) : null; } catch {}
                 
                 if (!response.ok) {
-                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + response.status);
                     showError(errorMsg);
                     return;
                 }
@@ -239,7 +239,7 @@
                 currentEvent = data.event;
                 displayEvent(data.event);
             } catch (error) {
-                showError('Error: ' + error.message);
+                showError(error.message);
             }
         }
 
@@ -327,7 +327,7 @@
                 try { json = respText ? JSON.parse(respText) : null; } catch {}
                 
                 if (!response.ok) {
-                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + response.status);
                     showError(errorMsg);
                     return;
                 }
@@ -346,7 +346,7 @@
                 showSuccess(successMsg);
                 loadEvent();
             } catch (error) {
-                showError('Error: ' + error.message);
+                showError(error.message);
             }
         }
 
@@ -377,7 +377,7 @@
                 try { json = respText ? JSON.parse(respText) : null; } catch {}
                 
                 if (!response.ok) {
-                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + response.status);
                     showError(errorMsg);
                     return;
                 }
@@ -387,7 +387,7 @@
                 document.getElementById('confirm-booking-id').value = '';
                 loadEvent();
             } catch (error) {
-                showError('Error: ' + error.message);
+                showError(error.message);
             }
         }
 

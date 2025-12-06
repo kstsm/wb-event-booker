@@ -171,7 +171,7 @@
                 }
 
                 if (!response.ok) {
-                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + response.status);
                     throw new Error(errorMsg);
                 }
 

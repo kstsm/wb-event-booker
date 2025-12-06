@@ -150,7 +150,7 @@
                 try { json = respText ? JSON.parse(respText) : null; } catch {}
                 
                 if (!response.ok) {
-                    const errorMsg = (json && json.error) ? ('Error: ' + json.error) : ('HTTP ' + response.status);
+                    const errorMsg = (json && json.error) ? (json.error) : ('HTTP ' + response.status);
                     showError(errorMsg);
                     return;
                 }
@@ -158,7 +158,7 @@
                 const data = json || {};
                 displayEvents(data.events || []);
             } catch (error) {
-                showError('Error: ' + error.message);
+                showError(error.message);
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
