@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"github.com/google/uuid"
 	"github.com/kstsm/wb-event-booker/internal/models"
 )
 
@@ -11,9 +10,9 @@ type CreateEventResponse struct {
 }
 
 type BookEventResponse struct {
-	BookingID uuid.UUID `json:"booking_id"`
-	Deadline  *string   `json:"deadline,omitempty"`
-	Message   string    `json:"message"`
+	BookingID string  `json:"booking_id"`
+	Deadline  *string `json:"deadline,omitempty"`
+	Message   string  `json:"message"`
 }
 
 type ConfirmBookingResponse struct {
