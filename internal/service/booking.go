@@ -25,7 +25,7 @@ func (s *Service) BookEvent(ctx context.Context,
 	}
 
 	resp := &dto.BookEventResponse{
-		BookingID: booking.ID.String(),
+		BookingID: booking.ID,
 	}
 
 	if !booking.Deadline.IsZero() {
@@ -37,12 +37,7 @@ func (s *Service) BookEvent(ctx context.Context,
 }
 
 func (s *Service) ConfirmBooking(ctx context.Context, eventID uuid.UUID, req *dto.ConfirmBookingRequest) error {
-	bookingID, err := uuid.Parse(req.BookingID)
-	if err != nil {
-		return apperrors.BookingNotFound
-	}
-
-	booking, err := s.repo.GetBookingByID(ctx, bookingID)
+	booking, err := s.repo.GetBookingByID(ctx, req.BookingID)
 	if err != nil {
 		return err
 	}
@@ -64,7 +59,7 @@ func (s *Service) ConfirmBooking(ctx context.Context, eventID uuid.UUID, req *dt
 		return apperrors.EventDoesNotRequirePayment
 	}
 
-	return s.repo.ConfirmBookingWithTransaction(ctx, bookingID)
+	return s.repo.ConfirmBookingWithTransaction(ctx, req.BookingID)
 }
 
 func (s *Service) ListBookingsByEventID(ctx context.Context, eventID uuid.UUID) ([]*models.Booking, error) {

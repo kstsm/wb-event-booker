@@ -1,11 +1,15 @@
 package dto
 
+import (
+	"github.com/google/uuid"
+)
+
 type BookEventRequest struct {
 	Email string `json:"email"`
 }
 
 type ConfirmBookingRequest struct {
-	BookingID string `json:"booking_id"`
+	BookingID uuid.UUID `json:"booking_id"`
 }
 
 type CreateUserRequest struct {
