@@ -129,7 +129,7 @@ make run
 
 ```json
 {
-  "name": "Концерт классической музыки",
+  "name": "Golang Meetup Wildberrie",
   "date": "2025-12-15T19:00:00Z",
   "total_seats": 100,
   "booking_lifetime_hours": 2,
@@ -604,7 +604,7 @@ make run
   "events": [
     {
       "id": "3dcb4cdd-d45c-4f1c-9b3b-67063a70874b",
-      "name": "Концерт классической музыки",
+      "name": "Golang Meetup Wildberrie",
       "date": "2025-12-16T01:00:00+06:00",
       "total_seats": 100,
       "reserved_seats": 0,
